@@ -257,38 +257,75 @@ func _update_user_input() -> void:
 	if Input.is_key_just_pressed(KEY_O): _request_ball_action(&"chip")
 
 func _update_ai(delta: float) -> void:
+	# Determine which side currently has the initiative. Prefer explicit soft
+	# possession; otherwise infer it from the closest player to the ball.
+	var ball_team := -1
+	if is_instance_valid(possession_player):
+		ball_team = possession_player.team_id
+	else:
+		var nearest_distance := INF
+		for candidate in players:
+			var candidate_distance := candidate.global_position.distance_squared_to(ball.global_position)
+			if candidate_distance < nearest_distance:
+				nearest_distance = candidate_distance
+				ball_team = candidate.team_id
+
+	var nearest_by_team := [INF, INF]
+	var presser_by_team: Array[FootballPlayer] = [null, null]
+	for candidate in players:
+		if candidate.is_goalkeeper:
+			continue
+		var distance := candidate.global_position.distance_squared_to(ball.global_position)
+		if distance < nearest_by_team[candidate.team_id]:
+			nearest_by_team[candidate.team_id] = distance
+			presser_by_team[candidate.team_id] = candidate
+
 	for p in players:
 		if p == controlled_player:
 			continue
-		var to_ball := ball.global_position - p.global_position
-		var is_nearest := true
-		for other in players:
-			if other.team_id != p.team_id and other.global_position.distance_squared_to(ball.global_position) < p.global_position.distance_squared_to(ball.global_position):
-				is_nearest = false
-				break
-		var target := Vector3.ZERO
+		var target := _formation_position(int(players.find(p) / 2), p.team_id)
+		var attack_sign := -1.0 if p.team_id == 0 else 1.0
+		var ball_x := clampf(ball.global_position.x * 0.32, -3.2, 3.2)
+		var ball_progress := clampf(ball.global_position.z * attack_sign, -10.0, 10.0)
+
 		if p.is_goalkeeper:
 			var goal_line := 13.35 if p.team_id == 0 else -13.35
 			var ball_in_box := absf(ball.global_position.x) < 5.2 and (ball.global_position.z > 8.5 if p.team_id == 0 else ball.global_position.z < -8.5)
 			target = Vector3(clampf(ball.global_position.x, -2.35, 2.35), 0.0, goal_line)
 			if ball_in_box:
 				target.z = clampf(ball.global_position.z, 10.0, 14.0) if p.team_id == 0 else clampf(ball.global_position.z, -14.0, -10.0)
-		elif is_nearest and p.team_id != 0:
-			target = ball.global_position
-		elif p.team_id == 0 and p.global_position.distance_to(ball.global_position) < 8.0:
-			target = ball.global_position
+		elif p.team_id == ball_team:
+			# Teammates stretch into lanes instead of all chasing the ball.
+			target.x += ball_x * 0.28
+			target.z += attack_sign * clampf(ball_progress * 0.16, -1.8, 1.8)
+			var player_index := int(players.find(p) / 2)
+			if player_index >= 8:
+				target.z += attack_sign * 1.35
+				target.x += signf(target.x - ball.global_position.x) * 0.35
+			elif player_index >= 5:
+				target.z += attack_sign * 0.45
+			if p.global_position.distance_to(ball.global_position) < 1.35 and ball.linear_velocity.length() < 1.5:
+				target = p.global_position
 		else:
-			var home := _formation_position(int(players.find(p) / 2), p.team_id)
-			target = home
+			# Only the closest outfield defender presses. The rest narrow and
+			# drop toward the ball to preserve a basic defensive block.
+			if presser_by_team[p.team_id] == p:
+				target = ball.global_position
+			else:
+				target.x += ball_x * 0.42
+				target.z += attack_sign * clampf(ball_progress * 0.12, -1.5, 1.5)
+				target.z -= attack_sign * 0.55
+
 		var direction := target - p.global_position
-		direction.y = 0
-		p.move_input = Vector2(direction.x, direction.z).normalized() if direction.length() > 1.0 else Vector2.ZERO
-		p.is_sprinting = is_nearest and direction.length() > 4.0
+		direction.y = 0.0
+		p.move_input = Vector2(direction.x, direction.z).normalized() if direction.length() > 0.85 else Vector2.ZERO
+		p.is_sprinting = (presser_by_team[p.team_id] == p and p.team_id != ball_team and direction.length() > 3.0) or (p.team_id == ball_team and int(players.find(p) / 2) >= 8 and direction.length() > 5.0)
+
 		if p.is_goalkeeper and ball.global_position.distance_to(p.global_position) < 1.0 and action_cooldown <= 0.0:
 			var clearance := Vector3(0, 0, -1) if p.team_id == 0 else Vector3(0, 0, 1)
 			_ball_kick(p, clearance, 9.5, 1.25)
 			action_cooldown = 0.9
-		elif p.team_id == 1 and not p.is_goalkeeper and p.global_position.distance_to(ball.global_position) < 1.15 and action_cooldown <= 0.0:
+		elif p.team_id == 1 and p != presser_by_team[p.team_id] and not p.is_goalkeeper and p.global_position.distance_to(ball.global_position) < 1.15 and action_cooldown <= 0.0:
 			_ball_kick(p, Vector3(0, 0, 1), 8.0, 1.1)
 			action_cooldown = 0.9
 
