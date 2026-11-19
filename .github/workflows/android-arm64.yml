@@ -32,7 +32,9 @@ jobs:
       - name: Accept licenses and install Android platform
         shell: bash
         run: |
+          set +o pipefail
           yes | sdkmanager --licenses >/dev/null
+          set -o pipefail
           sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
       - name: Install Godot 4.3
