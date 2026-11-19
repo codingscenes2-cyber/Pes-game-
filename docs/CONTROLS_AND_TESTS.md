@@ -20,7 +20,8 @@ Soft possession is now acquired automatically when a nearby player meets a low-s
 ## M1 / M2 / M3 manual test checklist
 
 - [x] GitHub Actions: import the project with Godot 4.3 and boot the main scene headlessly (passed on the latest commit).
-- [ ] Install the Android ARM64 test APK from the latest successful GitHub Actions run and inspect the live scene; confirm the pitch, both goals, 22 players, ball, camera and HUD appear.\n- [ ] Open the project in the Godot editor and inspect the live scene; confirm the pitch, both goals, 22 players, ball, camera and HUD appear.
+- [ ] Install the Android ARM64 test APK from the latest successful GitHub Actions run and inspect the live scene; confirm the pitch, both goals, 22 players, ball, camera and HUD appear.
+- [ ] Open the project in the Godot editor and inspect the live scene; confirm the pitch, both goals, 22 players, ball, camera and HUD appear.
 - [ ] Walk, change direction and sprint; verify the player does not slide excessively or fall through the pitch.
 - [ ] Move close to the ball and test ground pass and normal shot from keyboard and touch controls.
 - [ ] Press pass or shoot just outside kick range, move into range within the buffer window, and confirm the queued action fires once; confirm it expires if the player does not reach the ball in time.
@@ -34,7 +35,9 @@ Soft possession is now acquired automatically when a nearby player meets a low-s
 - [ ] Test a tackle near an opponent; verify it has a cooldown and only deflects the ball when the challenge is close enough.
 - [ ] Confirm the ball collides with players and the pitch, rolls to a stop and responds to kicks.
 - [ ] Confirm home players attack the negative-Z goal and away players attack the positive-Z goal; verify each goalkeeper stays near the correct goal.
-- [ ] Observe attacking teammates: forwards should make forward support movements while midfielders hold passing lanes rather than all chasing the ball.\n- [ ] Observe the defending side: the closest outfield defender should press while other defenders retain a compact shape.\n- [ ] Test a slow ball entering each penalty area; verify the corresponding goalkeeper tracks it and attempts a clearance at close range.
+- [ ] Observe attacking teammates: forwards should make forward support movements while midfielders hold passing lanes rather than all chasing the ball.
+- [ ] Observe the defending side: the closest outfield defender should press while other defenders retain a compact shape.
+- [ ] Test a slow ball entering each penalty area; verify the corresponding goalkeeper tracks it and attempts a clearance at close range.
 - [ ] Score in either goal and confirm the correct score increments and kickoff positions reset.
 - [ ] Test a narrow/tall Android viewport; verify the controls remain reachable and do not cover the score.
 - [ ] Profile on a physical Android device and check frame pacing, heat and memory use.
