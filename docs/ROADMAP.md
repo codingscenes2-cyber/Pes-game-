@@ -18,9 +18,9 @@
 
 ## M3 — team AI and goalkeeper
 
-**Initial foundation committed:** corrected home/away formation orientation and scoring direction; both teams now designate a goalkeeper, track the ball laterally along the goal line, step forward when the ball enters the box, and attempt a basic clearance at close range.
+**Initial foundation committed:** corrected home/away formation orientation and scoring direction; both teams designate a goalkeeper, track the ball laterally along the goal line, step forward when the ball enters the box, and attempt a basic clearance at close range. The current tactical pass also infers the team in possession, shifts formation anchors with ball location, sends forward players on support runs, and assigns one closest outfield defender to press while teammates hold a narrower defensive block. This is an early shape/pressing heuristic, not full tactical AI.
 
-**Still to implement:** formation-aware spacing, support runs, defensive line, pressing triggers, marking, interceptions, transitions, keeper dives, catches/parries, goal kicks, corners and throw-ins. Acceptance: both teams maintain shape and react to possession changes without clustering around the ball; goalkeepers make reliable saves and distribute safely.
+**Still to implement:** stronger role- and formation-aware spacing, reliable defensive-line behaviour, marking, interceptions, smarter possession transitions, keeper dives/catches/parries, goal kicks, corners and throw-ins. The current heuristic needs interactive match testing and tuning. Acceptance: both teams maintain shape and react to possession changes without clustering around the ball; goalkeepers make reliable saves and distribute safely.
 
 ## M4 — animation and physicality
 
@@ -45,3 +45,8 @@ Add stadium art, crowd/audio, licensed or original kits, broadcast presentation,
 - Prefer deterministic, inspectable tuning values over scattered magic numbers.
 - Use original or licensed assets only.
 - Never commit signing keys, passwords, private tokens or unlicensed commercial game assets.
+
+
+## Android ARM64 test build
+
+The repository now contains an Android ARM64 export preset and a GitHub Actions workflow at `.github/workflows/android-arm64.yml`. Pushes to `main` and manual workflow dispatch attempt a Godot 4.3 ARM64 debug-signed APK export and upload it as the `PES-M1-M3-ARM64-TEST-APK` artifact for 14 days. This is an installable test build, not a production/store release. The workflow result must be green and the artifact must exist before an APK can be considered available. No permanent signing key is stored in the repository.
