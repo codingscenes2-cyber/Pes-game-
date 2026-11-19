@@ -4,9 +4,9 @@
 
 **Implemented in source:** Godot 4 project configuration, generated pitch and goals, 22 capsule players in a basic 4-4-2-like layout, one user-controlled player, basic team movement, a rigid-body ball, follow camera, score HUD, touch buttons and keyboard fallback.
 
-**Not yet verified:** opening/running in Godot, collision feel, touch layout on real Android aspect ratios, Android export.
+**Verified:** GitHub Actions imported the project with Godot 4.3 and booted the main scene headlessly on the latest committed source. **Still not verified:** interactive gameplay feel, collision tuning, touch layout on physical Android aspect ratios, Android export.
 
-**Acceptance:** project imports without errors; match starts; player movement is responsive; ball rolls and bounces; pass and shoot work when close enough to the ball; goal detection and reset work; touch and keyboard controls both function.
+**Acceptance:** headless import and scene boot pass in CI (done); interactive movement, ball response, passing/shooting, goal/reset, touch controls and Android export still require manual/device verification.
 
 ## M2 — ball mastery and actions
 
