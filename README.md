@@ -4,21 +4,20 @@ A Godot 4.x 3D football project targeting Android ARM64, with a focus on respons
 
 ## Current status
 
-**Milestone 1 — playable foundation: initial source committed.** The project currently contains a procedural 3D pitch, player controller, rigid-body ball, simple opponent behaviour, follow camera and touch/keyboard controls. This is an early greybox prototype, not a finished football game. It has not yet been built or runtime-tested in Godot in this environment.
+**M1 greybox foundation and an early M2 gameplay pass are committed.** The prototype now includes a procedural pitch, 22 capsule players, a rigid-body ball, basic team movement, follow camera, score HUD, touch/keyboard controls, nearest-player switching, ground/through passing, shot variants and simple close-control dribble nudges. This is still an early greybox prototype, not a finished football game. It has not yet been built or runtime-tested in Godot in this environment.
 
 ## Open the project
 
-1. Install Godot 4.x (Forward+ or Mobile renderer; Mobile is the intended Android profile).
-2. Clone this repository and import the folder containing `project.godot`.
-3. Run the main scene.
-4. Desktop prototype controls: WASD / arrow keys to move, Shift to sprint, J to pass, K to shoot.
-5. On-screen controls are provided for touch testing.
+1. Install Godot 4.x and import the folder containing `project.godot`.
+2. Run the main scene.
+3. Desktop controls: WASD / arrows to move, Shift to sprint, J to pass, U to through pass, K to shoot, I to finesse, O to chip, Q to switch player.
+4. On-screen controls are provided for touch testing.
 
 ## Roadmap
 
-- [x] M1 — project skeleton and first playable greybox foundation
+- [x] M1 — project skeleton and first playable greybox foundation (source only; runtime verification pending)
 - [ ] M1.1 — run in Godot, fix engine/runtime issues, tune movement and ball response
-- [ ] M2 — robust passing, shooting, trapping, dribbling, tackles and possession transitions
+- [ ] M2 — early actions pass committed; possession, tackling, first touch and tuning remain
 - [ ] M3 — team shape, off-ball runs, defensive pressure, goalkeeper and restart logic
 - [ ] M4 — animation system, IK/procedural foot placement, player variety and impact reactions
 - [ ] M5 — match rules, clock, score, fouls, set pieces, substitutions and match flow
