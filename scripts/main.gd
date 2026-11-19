@@ -107,6 +107,7 @@ func _spawn_teams() -> void:
 	for i in range(11):
 		var home := PLAYER_SCRIPT.new() as FootballPlayer
 		home.configure(0, HOME_COLOR, i == 9)
+		home.is_goalkeeper = (i == 0)
 		home.position = _formation_position(i, 0)
 		add_child(home)
 		players.append(home)
@@ -114,12 +115,13 @@ func _spawn_teams() -> void:
 			controlled_player = home
 		var away := PLAYER_SCRIPT.new() as FootballPlayer
 		away.configure(1, AWAY_COLOR, false)
+		away.is_goalkeeper = (i == 0)
 		away.position = _formation_position(i, 1)
 		add_child(away)
 		players.append(away)
 
 func _formation_position(index: int, team: int) -> Vector3:
-	var sign := -1.0 if team == 0 else 1.0
+	var sign := 1.0 if team == 0 else -1.0
 	var positions := [
 		Vector3(0, 0, 12),
 		Vector3(-7, 0, 8), Vector3(-2.3, 0, 8), Vector3(2.3, 0, 8), Vector3(7, 0, 8),
@@ -265,7 +267,13 @@ func _update_ai(delta: float) -> void:
 				is_nearest = false
 				break
 		var target := Vector3.ZERO
-		if is_nearest and p.team_id != 0:
+		if p.is_goalkeeper:
+			var goal_line := 13.35 if p.team_id == 0 else -13.35
+			var ball_in_box := absf(ball.global_position.x) < 5.2 and (ball.global_position.z > 8.5 if p.team_id == 0 else ball.global_position.z < -8.5)
+			target = Vector3(clampf(ball.global_position.x, -2.35, 2.35), 0.0, goal_line)
+			if ball_in_box:
+				target.z = clampf(ball.global_position.z, 10.0, 14.0) if p.team_id == 0 else clampf(ball.global_position.z, -14.0, -10.0)
+		elif is_nearest and p.team_id != 0:
 			target = ball.global_position
 		elif p.team_id == 0 and p.global_position.distance_to(ball.global_position) < 8.0:
 			target = ball.global_position
@@ -276,7 +284,11 @@ func _update_ai(delta: float) -> void:
 		direction.y = 0
 		p.move_input = Vector2(direction.x, direction.z).normalized() if direction.length() > 1.0 else Vector2.ZERO
 		p.is_sprinting = is_nearest and direction.length() > 4.0
-		if p.team_id == 1 and p.global_position.distance_to(ball.global_position) < 1.15 and action_cooldown <= 0.0:
+		if p.is_goalkeeper and ball.global_position.distance_to(p.global_position) < 1.0 and action_cooldown <= 0.0:
+			var clearance := Vector3(0, 0, -1) if p.team_id == 0 else Vector3(0, 0, 1)
+			_ball_kick(p, clearance, 9.5, 1.25)
+			action_cooldown = 0.9
+		elif p.team_id == 1 and not p.is_goalkeeper and p.global_position.distance_to(ball.global_position) < 1.15 and action_cooldown <= 0.0:
 			_ball_kick(p, Vector3(0, 0, 1), 8.0, 1.1)
 			action_cooldown = 0.9
 
