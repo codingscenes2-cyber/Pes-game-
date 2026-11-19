@@ -10,6 +10,7 @@ class_name FootballPlayer
 var move_input: Vector2 = Vector2.ZERO
 var is_sprinting: bool = false
 var team_id: int = 0
+var is_goalkeeper: bool = false
 var shirt_color: Color = Color(0.12, 0.38, 0.92)
 var body_mesh: MeshInstance3D
 var visual_root: Node3D
