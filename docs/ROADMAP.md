@@ -18,7 +18,9 @@
 
 ## M3 — team AI and goalkeeper
 
-Implement formation-aware spacing, support runs, defensive line, pressing triggers, marking, interceptions, transitions, keeper positioning, dives, catches/parries, goal kicks, corners and throw-ins. Acceptance: both teams maintain shape and react to possession changes without clustering around the ball.
+**Initial foundation committed:** corrected home/away formation orientation and scoring direction; both teams now designate a goalkeeper, track the ball laterally along the goal line, step forward when the ball enters the box, and attempt a basic clearance at close range.
+
+**Still to implement:** formation-aware spacing, support runs, defensive line, pressing triggers, marking, interceptions, transitions, keeper dives, catches/parries, goal kicks, corners and throw-ins. Acceptance: both teams maintain shape and react to possession changes without clustering around the ball; goalkeepers make reliable saves and distribute safely.
 
 ## M4 — animation and physicality
 
