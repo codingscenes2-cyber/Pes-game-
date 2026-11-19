@@ -12,12 +12,15 @@ var camera: Camera3D
 var score_home := 0
 var score_away := 0
 var match_time := 0.0
-var touch_state := {"up": false, "down": false, "left": false, "right": false, "sprint": false}
+var touch_state := {"up": false, "down": false, "left": false, "right": false, "sprint": false, "shield": false}
 var score_label: Label
 var status_label: Label
 var action_cooldown := 0.0
 var dribble_cooldown := 0.0
 var tackle_cooldown := 0.0
+var possession_player: FootballPlayer
+var possession_lock_timer := 0.0
+var shielding := false
 
 const HOME_COLOR := Color(0.08, 0.32, 0.94)
 const AWAY_COLOR := Color(0.88, 0.16, 0.12)
@@ -188,6 +191,7 @@ func _build_hud() -> void:
 	_add_action_button(action_column, "THROUGH", _through_pass, 92)
 	_add_action_button(action_column, "SWITCH", _switch_player, 92)
 	_add_action_button(action_column, "TACKLE", _tackle, 92)
+	_add_touch_button(action_column, "SHIELD", "shield", 92)
 	_add_touch_button(action_column, "SPRINT", "sprint", 92)
 
 func _add_spacer(parent: Control) -> void:
@@ -216,6 +220,7 @@ func _physics_process(delta: float) -> void:
 	dribble_cooldown = maxf(0.0, dribble_cooldown - delta)
 	tackle_cooldown = maxf(0.0, tackle_cooldown - delta)
 	_update_user_input()
+	_update_possession(delta)
 	_update_dribble_control()
 	_update_ai(delta)
 	_check_goal()
@@ -237,6 +242,7 @@ func _update_user_input() -> void:
 	if Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN) or touch_state.down: y += 1.0
 	controlled_player.move_input = Vector2(x, y).normalized()
 	controlled_player.is_sprinting = Input.is_key_pressed(KEY_SHIFT) or touch_state.sprint
+	shielding = Input.is_key_pressed(KEY_E) or touch_state.shield
 	if Input.is_key_just_pressed(KEY_J): _pass()
 	if Input.is_key_just_pressed(KEY_K): _shoot()
 	if Input.is_key_just_pressed(KEY_U): _through_pass()
@@ -354,6 +360,8 @@ func _tackle() -> void:
 		opponent.velocity.x += knockback.x * 2.8
 		opponent.velocity.z += knockback.z * 2.8
 		if opponent.global_position.distance_to(ball.global_position) < 1.65 or controlled_player.global_position.distance_to(ball.global_position) < 1.9:
+			possession_player = null
+			possession_lock_timer = 0.18
 			var ball_direction := (ball.global_position - controlled_player.global_position).normalized()
 			ball.apply_central_impulse(ball_direction * 3.2 + Vector3.UP * 0.25)
 	tackle_cooldown = 1.1
@@ -374,21 +382,60 @@ func _shoot_chip() -> void:
 	_ball_kick(controlled_player, direction, 8.0, 2.8)
 	action_cooldown = 0.55
 
+func _update_possession(delta: float) -> void:
+	possession_lock_timer = maxf(0.0, possession_lock_timer - delta)
+	if is_instance_valid(possession_player):
+		var owner_distance := possession_player.global_position.distance_to(ball.global_position)
+		if owner_distance > 2.15 or possession_player.is_queued_for_deletion():
+			possession_player = null
+		else:
+			var move_direction := Vector3(possession_player.move_input.x, 0.0, possession_player.move_input.y)
+			var facing := -possession_player.visual_root.global_transform.basis.z
+			var carry_direction := facing
+			if move_direction.length_squared() > 0.04:
+				carry_direction = move_direction.normalized()
+			var side_offset := Vector3(-carry_direction.z, 0.0, carry_direction.x) * (0.48 if possession_player == controlled_player and shielding else 0.0)
+			var carry_distance := 0.82 if possession_player == controlled_player and shielding else 0.72
+			var target := possession_player.global_position + carry_direction * carry_distance + side_offset + Vector3.UP * 0.22
+			var error := target - ball.global_position
+			var force := error * 16.0 - ball.linear_velocity * 4.2
+			ball.apply_central_force(force.limit_length(32.0) * ball.mass)
+			return
+	if possession_lock_timer > 0.0 or ball.linear_velocity.length() > 5.0:
+		return
+	var candidate: FootballPlayer
+	var best_distance := 1.12
+	for p in players:
+		var distance := p.global_position.distance_to(ball.global_position)
+		if distance < best_distance:
+			best_distance = distance
+			candidate = p
+	if candidate:
+		var relative_speed := ball.linear_velocity.length()
+		if relative_speed < 4.2:
+			possession_player = candidate
+			ball.linear_velocity *= 0.28
+			ball.angular_velocity *= 0.45
+
 func _update_dribble_control() -> void:
+	if possession_player != controlled_player:
+		return
 	if dribble_cooldown > 0.0 or controlled_player.move_input.length_squared() < 0.05:
 		return
 	var facing := -controlled_player.visual_root.global_transform.basis.z
 	var foot_target := controlled_player.global_position + facing * 0.78 + Vector3.UP * 0.18
-	if ball.global_position.distance_to(foot_target) > 1.18 or ball.linear_velocity.length() > 8.0:
+	if ball.global_position.distance_to(foot_target) > 1.35 or ball.linear_velocity.length() > 8.0:
 		return
 	var move_direction := Vector3(controlled_player.move_input.x, 0.0, controlled_player.move_input.y).normalized()
 	var touch_direction := (move_direction + facing * 0.25).normalized()
-	ball.apply_central_impulse(touch_direction * (0.52 if controlled_player.is_sprinting else 0.38))
-	dribble_cooldown = 0.24
+	ball.apply_central_impulse(touch_direction * (0.30 if controlled_player.is_sprinting else 0.22))
+	dribble_cooldown = 0.30
 
 func _ball_kick(kicker: FootballPlayer, direction: Vector3, power: float, lift: float) -> void:
 	if kicker.global_position.distance_to(ball.global_position) > 2.0:
 		return
+	possession_player = null
+	possession_lock_timer = 0.32
 	ball.global_position = kicker.global_position + direction.normalized() * 0.82 + Vector3.UP * 0.18
 	ball.linear_velocity = Vector3.ZERO
 	ball.kick(direction, power, lift)
