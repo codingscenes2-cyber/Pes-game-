@@ -45,7 +45,7 @@ func _build_world() -> void:
 	sun.shadow_enabled = true
 	add_child(sun)
 
-	_add_box("Pitch", Vector3(PITCH_WIDTH, 0.25, PITCH_LENGTH), Vector3(0, -0.18, 0), Color(0.10, 0.39, 0.19))
+	_add_box("Pitch", Vector3(PITCH_WIDTH, 0.25, PITCH_LENGTH), Vector3(0, -0.18, 0), Color(0.10, 0.39, 0.19), true)
 	for i in range(10):
 		var stripe_color := Color(0.12, 0.43, 0.21) if i % 2 == 0 else Color(0.095, 0.37, 0.17)
 		_add_box("MowingStripe", Vector3(PITCH_WIDTH, 0.012, 3.0), Vector3(0, -0.045, -13.5 + i * 3.0), stripe_color)
@@ -245,7 +245,7 @@ func _update_ai(delta: float) -> void:
 		elif p.team_id == 0 and p.global_position.distance_to(ball.global_position) < 8.0:
 			target = ball.global_position
 		else:
-			var home := _formation_position(players.find(p) / 2, p.team_id)
+			var home := _formation_position(int(players.find(p) / 2), p.team_id)
 			target = home
 		var direction := target - p.global_position
 		direction.y = 0
@@ -307,7 +307,7 @@ func _reset_after_goal() -> void:
 	_update_score()
 	ball.reset_ball(Vector3(0, 0.24, 0))
 	for p in players:
-		p.position = _formation_position(players.find(p) / 2, p.team_id)
+		p.position = _formation_position(int(players.find(p) / 2), p.team_id)
 
 func _update_score() -> void:
 	if is_instance_valid(score_label):
