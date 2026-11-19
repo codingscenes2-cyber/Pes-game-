@@ -17,10 +17,10 @@
 
 Soft possession is now acquired automatically when a nearby player meets a low-speed ball. The ball is guided toward a moving carry point using a capped spring-like force; it is not parented to the player. The controlled player can hold shield to carry the ball slightly to the side. Automatic close-control nudges add a small touch while moving. Pass and shot inputs are buffered for up to 0.38 seconds while the controlled player closes the final distance to the ball; the kick itself still requires the player to be within 2 metres.
 
-## M1 / M2 manual test checklist
+## M1 / M2 / M3 manual test checklist
 
 - [x] GitHub Actions: import the project with Godot 4.3 and boot the main scene headlessly (passed on the latest commit).
-- [ ] Open the project in the Godot editor and inspect the live scene; confirm the pitch, both goals, 22 players, ball, camera and HUD appear.
+- [ ] Install the Android ARM64 test APK from the latest successful GitHub Actions run and inspect the live scene; confirm the pitch, both goals, 22 players, ball, camera and HUD appear.\n- [ ] Open the project in the Godot editor and inspect the live scene; confirm the pitch, both goals, 22 players, ball, camera and HUD appear.
 - [ ] Walk, change direction and sprint; verify the player does not slide excessively or fall through the pitch.
 - [ ] Move close to the ball and test ground pass and normal shot from keyboard and touch controls.
 - [ ] Press pass or shoot just outside kick range, move into range within the buffer window, and confirm the queued action fires once; confirm it expires if the player does not reach the ball in time.
@@ -34,7 +34,7 @@ Soft possession is now acquired automatically when a nearby player meets a low-s
 - [ ] Test a tackle near an opponent; verify it has a cooldown and only deflects the ball when the challenge is close enough.
 - [ ] Confirm the ball collides with players and the pitch, rolls to a stop and responds to kicks.
 - [ ] Confirm home players attack the negative-Z goal and away players attack the positive-Z goal; verify each goalkeeper stays near the correct goal.
-- [ ] Test a slow ball entering each penalty area; verify the corresponding goalkeeper tracks it and attempts a clearance at close range.
+- [ ] Observe attacking teammates: forwards should make forward support movements while midfielders hold passing lanes rather than all chasing the ball.\n- [ ] Observe the defending side: the closest outfield defender should press while other defenders retain a compact shape.\n- [ ] Test a slow ball entering each penalty area; verify the corresponding goalkeeper tracks it and attempts a clearance at close range.
 - [ ] Score in either goal and confirm the correct score increments and kickoff positions reset.
 - [ ] Test a narrow/tall Android viewport; verify the controls remain reachable and do not cover the score.
 - [ ] Profile on a physical Android device and check frame pacing, heat and memory use.
@@ -51,4 +51,4 @@ Soft possession is now acquired automatically when a nearby player meets a low-s
 - Tackling is a proximity-based knockback/deflection prototype, not a timed tackle animation or foul-aware challenge system.
 - Shooting currently targets the negative-Z goal; match-side switching and full match rules are not implemented.
 - Goalkeepers have only basic lateral/penalty-area tracking and close-range clearances; dives, catches, parries and realistic distribution remain unimplemented. Fouls, offside, set pieces, match clock/halves, audio and save system are also missing.
-- CI has passed a Godot 4.3 headless import and scene boot, but the project has not yet had interactive editor/device QA or an Android export. Complete the remaining checklist before calling M1/M2 verified.
+- CI has passed a Godot 4.3 headless import and scene boot. An Android ARM64 test-export workflow has been added, but its first run must pass and produce an artifact; interactive editor/device QA remains outstanding. Complete the remaining checklist before calling M1/M2 verified.
