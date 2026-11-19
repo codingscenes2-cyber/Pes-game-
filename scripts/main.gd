@@ -161,7 +161,7 @@ func _build_hud() -> void:
 	controls.anchor_right = 1.0
 	controls.anchor_bottom = 1.0
 	controls.offset_left = 18
-	controls.offset_top = -350
+	controls.offset_top = -360
 	controls.offset_right = -18
 	controls.offset_bottom = -18
 	controls.alignment = BoxContainer.ALIGNMENT_END
