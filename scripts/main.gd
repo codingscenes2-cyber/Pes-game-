@@ -17,6 +17,7 @@ var score_label: Label
 var status_label: Label
 var action_cooldown := 0.0
 var dribble_cooldown := 0.0
+var tackle_cooldown := 0.0
 
 const HOME_COLOR := Color(0.08, 0.32, 0.94)
 const AWAY_COLOR := Color(0.88, 0.16, 0.12)
@@ -160,7 +161,7 @@ func _build_hud() -> void:
 	controls.anchor_right = 1.0
 	controls.anchor_bottom = 1.0
 	controls.offset_left = 18
-	controls.offset_top = -300
+	controls.offset_top = -350
 	controls.offset_right = -18
 	controls.offset_bottom = -18
 	controls.alignment = BoxContainer.ALIGNMENT_END
@@ -185,6 +186,7 @@ func _build_hud() -> void:
 	_add_action_button(action_column, "PASS", _pass, 92)
 	_add_action_button(action_column, "THROUGH", _through_pass, 92)
 	_add_action_button(action_column, "SWITCH", _switch_player, 92)
+	_add_action_button(action_column, "TACKLE", _tackle, 92)
 	_add_touch_button(action_column, "SPRINT", "sprint", 92)
 
 func _add_spacer(parent: Control) -> void:
@@ -211,6 +213,7 @@ func _physics_process(delta: float) -> void:
 	match_time += delta
 	action_cooldown = maxf(0.0, action_cooldown - delta)
 	dribble_cooldown = maxf(0.0, dribble_cooldown - delta)
+	tackle_cooldown = maxf(0.0, tackle_cooldown - delta)
 	_update_user_input()
 	_update_dribble_control()
 	_update_ai(delta)
@@ -237,6 +240,7 @@ func _update_user_input() -> void:
 	if Input.is_key_just_pressed(KEY_K): _shoot()
 	if Input.is_key_just_pressed(KEY_U): _through_pass()
 	if Input.is_key_just_pressed(KEY_Q): _switch_player()
+	if Input.is_key_just_pressed(KEY_P): _tackle()
 	if Input.is_key_just_pressed(KEY_I): _shoot_finesse()
 	if Input.is_key_just_pressed(KEY_O): _shoot_chip()
 
@@ -330,6 +334,28 @@ func _switch_player() -> void:
 	var next_player := _nearest_home_player()
 	if is_instance_valid(next_player):
 		controlled_player = next_player
+
+func _tackle() -> void:
+	if tackle_cooldown > 0.0:
+		return
+	var opponent: FootballPlayer
+	var nearest_distance := 1.45
+	for p in players:
+		if p.team_id == controlled_player.team_id:
+			continue
+		var distance := controlled_player.global_position.distance_to(p.global_position)
+		if distance < nearest_distance:
+			nearest_distance = distance
+			opponent = p
+	if opponent:
+		var knockback := (opponent.global_position - controlled_player.global_position).normalized()
+		knockback.y = 0.0
+		opponent.velocity.x += knockback.x * 2.8
+		opponent.velocity.z += knockback.z * 2.8
+		if opponent.global_position.distance_to(ball.global_position) < 1.65 or controlled_player.global_position.distance_to(ball.global_position) < 1.9:
+			var ball_direction := (ball.global_position - controlled_player.global_position).normalized()
+			ball.apply_central_impulse(ball_direction * 3.2 + Vector3.UP * 0.25)
+	tackle_cooldown = 1.1
 
 func _shoot_finesse() -> void:
 	if action_cooldown > 0.0: return
