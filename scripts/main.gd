@@ -16,6 +16,7 @@ var touch_state := {"up": false, "down": false, "left": false, "right": false, "
 var score_label: Label
 var status_label: Label
 var action_cooldown := 0.0
+var dribble_cooldown := 0.0
 
 const HOME_COLOR := Color(0.08, 0.32, 0.94)
 const AWAY_COLOR := Color(0.88, 0.16, 0.12)
@@ -180,6 +181,8 @@ func _build_hud() -> void:
 	controls.add_child(action_column)
 	_add_action_button(action_column, "SHOOT", _shoot, 92)
 	_add_action_button(action_column, "PASS", _pass, 92)
+	_add_action_button(action_column, "THROUGH", _through_pass, 92)
+	_add_action_button(action_column, "SWITCH", _switch_player, 92)
 	_add_touch_button(action_column, "SPRINT", "sprint", 92)
 
 func _add_spacer(parent: Control) -> void:
@@ -205,7 +208,9 @@ func _add_action_button(parent: Node, caption: String, action: Callable, width: 
 func _physics_process(delta: float) -> void:
 	match_time += delta
 	action_cooldown = maxf(0.0, action_cooldown - delta)
+	dribble_cooldown = maxf(0.0, dribble_cooldown - delta)
 	_update_user_input()
+	_update_dribble_control()
 	_update_ai(delta)
 	_check_goal()
 	if int(match_time) % 30 == 0 and int(match_time * 10.0) % 10 == 0:
@@ -228,6 +233,10 @@ func _update_user_input() -> void:
 	controlled_player.is_sprinting = Input.is_key_pressed(KEY_SHIFT) or touch_state.sprint
 	if Input.is_key_just_pressed(KEY_J): _pass()
 	if Input.is_key_just_pressed(KEY_K): _shoot()
+	if Input.is_key_just_pressed(KEY_U): _through_pass()
+	if Input.is_key_just_pressed(KEY_Q): _switch_player()
+	if Input.is_key_just_pressed(KEY_I): _shoot_finesse()
+	if Input.is_key_just_pressed(KEY_O): _shoot_chip()
 
 func _update_ai(delta: float) -> void:
 	for p in players:
@@ -287,6 +296,66 @@ func _shoot() -> void:
 	var goal_direction := Vector3(0, 0, -1)
 	_ball_kick(controlled_player, goal_direction, 13.5, 1.0)
 	action_cooldown = 0.45
+
+func _through_pass() -> void:
+	if action_cooldown > 0.0: return
+	var forward := -controlled_player.visual_root.global_transform.basis.z
+	var receiver: FootballPlayer
+	var best_score := -INF
+	for p in players:
+		if p.team_id != 0 or p == controlled_player:
+			continue
+		var offset := p.global_position - controlled_player.global_position
+		var distance := offset.length()
+		if distance < 2.0 or distance > 18.0:
+			continue
+		var forwardness := forward.dot(offset.normalized())
+		if forwardness < 0.35:
+			continue
+		var score := forwardness * 5.0 - distance * 0.08
+		if score > best_score:
+			best_score = score
+			receiver = p
+	if receiver:
+		var lead := receiver.global_position + receiver.velocity * 0.32
+		var direction := (lead - controlled_player.global_position).normalized()
+		_ball_kick(controlled_player, direction, 9.0, 0.42)
+	else:
+		_ball_kick(controlled_player, forward, 8.5, 0.38)
+	action_cooldown = 0.5
+
+func _switch_player() -> void:
+	var next_player := _nearest_home_player()
+	if is_instance_valid(next_player):
+		controlled_player = next_player
+
+func _shoot_finesse() -> void:
+	if action_cooldown > 0.0: return
+	var forward := -controlled_player.visual_root.global_transform.basis.z
+	var goal_target := Vector3(0, 1.0, -15.0)
+	var direction := (goal_target - controlled_player.global_position).normalized()
+	var curve_side := -1.0 if controlled_player.global_position.x > 0.0 else 1.0
+	_ball_kick(controlled_player, (direction + Vector3(curve_side * 0.12, 0.04, 0)).normalized(), 10.5, 0.72)
+	ball.kick(Vector3.UP, 0.0, 0.0, curve_side * 0.7)
+	action_cooldown = 0.55
+
+func _shoot_chip() -> void:
+	if action_cooldown > 0.0: return
+	var direction := Vector3(0, 0, -1)
+	_ball_kick(controlled_player, direction, 8.0, 2.8)
+	action_cooldown = 0.55
+
+func _update_dribble_control() -> void:
+	if dribble_cooldown > 0.0 or controlled_player.move_input.length_squared() < 0.05:
+		return
+	var facing := -controlled_player.visual_root.global_transform.basis.z
+	var foot_target := controlled_player.global_position + facing * 0.78 + Vector3.UP * 0.18
+	if ball.global_position.distance_to(foot_target) > 1.18 or ball.linear_velocity.length() > 8.0:
+		return
+	var move_direction := Vector3(controlled_player.move_input.x, 0.0, controlled_player.move_input.y).normalized()
+	var touch_direction := (move_direction + facing * 0.25).normalized()
+	ball.apply_central_impulse(touch_direction * (0.52 if controlled_player.is_sprinting else 0.38))
+	dribble_cooldown = 0.24
 
 func _ball_kick(kicker: FootballPlayer, direction: Vector3, power: float, lift: float) -> void:
 	if kicker.global_position.distance_to(ball.global_position) > 2.0:
