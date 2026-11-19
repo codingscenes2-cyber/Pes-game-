@@ -191,7 +191,7 @@ func _build_hud() -> void:
 	_add_action_button(action_column, "THROUGH", _through_pass, 92)
 	_add_action_button(action_column, "SWITCH", _switch_player, 92)
 	_add_action_button(action_column, "TACKLE", _tackle, 92)
-	_add_touch_button(action_column, "SHIELD", "shield", 92)
+	_add_touch_button(action_column, "SHIELD", "shield", 92, 40)
 	_add_touch_button(action_column, "SPRINT", "sprint", 92)
 
 func _add_spacer(parent: Control) -> void:
@@ -199,10 +199,10 @@ func _add_spacer(parent: Control) -> void:
 	spacer.custom_minimum_size = Vector2(62, 62)
 	parent.add_child(spacer)
 
-func _add_touch_button(parent: Node, caption: String, key: String, width: float) -> void:
+func _add_touch_button(parent: Node, caption: String, key: String, width: float, height: float = 58.0) -> void:
 	var button := Button.new()
 	button.text = caption
-	button.custom_minimum_size = Vector2(width, 58)
+	button.custom_minimum_size = Vector2(width, height)
 	button.button_down.connect(func(): touch_state[key] = true)
 	button.button_up.connect(func(): touch_state[key] = false)
 	parent.add_child(button)
@@ -210,7 +210,7 @@ func _add_touch_button(parent: Node, caption: String, key: String, width: float)
 func _add_action_button(parent: Node, caption: String, action: Callable, width: float) -> void:
 	var button := Button.new()
 	button.text = caption
-	button.custom_minimum_size = Vector2(width, 40)
+	button.custom_minimum_size = Vector2(width, 34)
 	button.pressed.connect(action)
 	parent.add_child(button)
 
