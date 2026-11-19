@@ -1,0 +1,314 @@
+extends Node3D
+
+const PLAYER_SCRIPT = preload("res://scripts/player_controller.gd")
+const BALL_SCRIPT = preload("res://scripts/football_ball.gd")
+const PITCH_LENGTH := 30.0
+const PITCH_WIDTH := 20.0
+
+var controlled_player: FootballPlayer
+var ball: FootballBall
+var players: Array[FootballPlayer] = []
+var camera: Camera3D
+var score_home := 0
+var score_away := 0
+var match_time := 0.0
+var touch_state := {"up": false, "down": false, "left": false, "right": false, "sprint": false}
+var score_label: Label
+var status_label: Label
+var action_cooldown := 0.0
+
+const HOME_COLOR := Color(0.08, 0.32, 0.94)
+const AWAY_COLOR := Color(0.88, 0.16, 0.12)
+
+func _ready() -> void:
+	_build_world()
+	_spawn_teams()
+	_spawn_ball()
+	_build_camera()
+	_build_hud()
+	_update_score()
+
+func _build_world() -> void:
+	var environment := WorldEnvironment.new()
+	var env := Environment.new()
+	env.background_mode = Environment.BG_COLOR
+	env.background_color = Color(0.035, 0.075, 0.065)
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.ambient_light_color = Color(0.72, 0.78, 0.82)
+	env.ambient_light_energy = 0.75
+	environment.environment = env
+	add_child(environment)
+
+	var sun := DirectionalLight3D.new()
+	sun.rotation_degrees = Vector3(-52, -28, 0)
+	sun.light_energy = 1.25
+	sun.shadow_enabled = true
+	add_child(sun)
+
+	_add_box("Pitch", Vector3(PITCH_WIDTH, 0.25, PITCH_LENGTH), Vector3(0, -0.18, 0), Color(0.10, 0.39, 0.19))
+	for i in range(10):
+		var stripe_color := Color(0.12, 0.43, 0.21) if i % 2 == 0 else Color(0.095, 0.37, 0.17)
+		_add_box("MowingStripe", Vector3(PITCH_WIDTH, 0.012, 3.0), Vector3(0, -0.045, -13.5 + i * 3.0), stripe_color)
+	_add_box("HalfwayLine", Vector3(PITCH_WIDTH, 0.018, 0.07), Vector3(0, -0.025, 0), Color.WHITE)
+	_add_box("CenterMark", Vector3(0.18, 0.025, 0.18), Vector3(0, -0.015, 0), Color.WHITE)
+	_add_box("TouchlineNorth", Vector3(PITCH_WIDTH, 0.025, 0.07), Vector3(0, -0.02, -15), Color.WHITE)
+	_add_box("TouchlineSouth", Vector3(PITCH_WIDTH, 0.025, 0.07), Vector3(0, -0.02, 15), Color.WHITE)
+	_add_box("TouchlineWest", Vector3(0.07, 0.025, PITCH_LENGTH), Vector3(-10, -0.02, 0), Color.WHITE)
+	_add_box("TouchlineEast", Vector3(0.07, 0.025, PITCH_LENGTH), Vector3(10, -0.02, 0), Color.WHITE)
+	_add_box("CenterCircleTop", Vector3(4.2, 0.02, 0.07), Vector3(0, -0.015, -2.1), Color.WHITE)
+	_add_box("CenterCircleBottom", Vector3(4.2, 0.02, 0.07), Vector3(0, -0.015, 2.1), Color.WHITE)
+	_add_box("LeftPenaltyLine", Vector3(0.07, 0.02, 6.0), Vector3(-3.5, -0.015, -12), Color.WHITE)
+	_add_box("RightPenaltyLine", Vector3(0.07, 0.02, 6.0), Vector3(3.5, -0.015, -12), Color.WHITE)
+	_add_box("PenaltyTop", Vector3(7.0, 0.02, 0.07), Vector3(0, -0.015, -9), Color.WHITE)
+	_add_box("PenaltyBottom", Vector3(7.0, 0.02, 0.07), Vector3(0, -0.015, 9), Color.WHITE)
+	_add_goal(-15.0)
+	_add_goal(15.0)
+
+func _add_box(label: String, size: Vector3, at: Vector3, color: Color, solid: bool = false) -> void:
+	var root: Node3D
+	if solid:
+		var body := StaticBody3D.new()
+		root = body
+		var shape := BoxShape3D.new()
+		shape.size = size
+		var collision := CollisionShape3D.new()
+		collision.shape = shape
+		body.add_child(collision)
+	else:
+		root = Node3D.new()
+	var mesh_instance := MeshInstance3D.new()
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	var material := StandardMaterial3D.new()
+	material.albedo_color = color
+	material.roughness = 0.9
+	mesh.material = material
+	mesh_instance.mesh = mesh
+	root.add_child(mesh_instance)
+	root.position = at
+	root.name = label
+	add_child(root)
+
+func _add_goal(z: float) -> void:
+	var goal_color := Color(0.92, 0.94, 0.96)
+	_add_box("GoalPost", Vector3(0.18, 2.3, 0.18), Vector3(-3.0, 1.15, z), goal_color, true)
+	_add_box("GoalPost", Vector3(0.18, 2.3, 0.18), Vector3(3.0, 1.15, z), goal_color, true)
+	_add_box("GoalCrossbar", Vector3(6.0, 0.18, 0.18), Vector3(0, 2.3, z), goal_color, true)
+	_add_box("GoalBack", Vector3(6.0, 2.2, 0.12), Vector3(0, 1.1, z + (0.9 if z < 0 else -0.9)), Color(0.8, 0.84, 0.86, 0.35))
+
+func _spawn_teams() -> void:
+	for i in range(11):
+		var home := PLAYER_SCRIPT.new() as FootballPlayer
+		home.configure(0, HOME_COLOR, i == 9)
+		home.position = _formation_position(i, 0)
+		add_child(home)
+		players.append(home)
+		if i == 9:
+			controlled_player = home
+		var away := PLAYER_SCRIPT.new() as FootballPlayer
+		away.configure(1, AWAY_COLOR, false)
+		away.position = _formation_position(i, 1)
+		add_child(away)
+		players.append(away)
+
+func _formation_position(index: int, team: int) -> Vector3:
+	var sign := -1.0 if team == 0 else 1.0
+	var positions := [
+		Vector3(0, 0, 12),
+		Vector3(-7, 0, 8), Vector3(-2.3, 0, 8), Vector3(2.3, 0, 8), Vector3(7, 0, 8),
+		Vector3(-6, 0, 2), Vector3(0, 0, 3), Vector3(6, 0, 2),
+		Vector3(-5, 0, -4), Vector3(0, 0, -5), Vector3(5, 0, -4)
+	]
+	var p: Vector3 = positions[index]
+	return Vector3(p.x, 0, p.z * sign)
+
+func _spawn_ball() -> void:
+	ball = BALL_SCRIPT.new() as FootballBall
+	ball.position = Vector3(0, 0.24, 0)
+	add_child(ball)
+
+func _build_camera() -> void:
+	camera = Camera3D.new()
+	camera.current = true
+	camera.fov = 54
+	add_child(camera)
+	camera.position = Vector3(0, 13, 18)
+	camera.look_at(Vector3.ZERO, Vector3.UP)
+
+func _build_hud() -> void:
+	var layer := CanvasLayer.new()
+	add_child(layer)
+	var panel := PanelContainer.new()
+	panel.position = Vector2(18, 16)
+	panel.custom_minimum_size = Vector2(250, 66)
+	layer.add_child(panel)
+	var column := VBoxContainer.new()
+	panel.add_child(column)
+	score_label = Label.new()
+	score_label.add_theme_font_size_override("font_size", 25)
+	score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	column.add_child(score_label)
+	status_label = Label.new()
+	status_label.text = "EXHIBITION  •  90:00"
+	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	column.add_child(status_label)
+
+	var controls := HBoxContainer.new()
+	controls.anchor_left = 0.0
+	controls.anchor_top = 1.0
+	controls.anchor_right = 1.0
+	controls.anchor_bottom = 1.0
+	controls.offset_left = 18
+	controls.offset_top = -112
+	controls.offset_right = -18
+	controls.offset_bottom = -18
+	controls.alignment = BoxContainer.ALIGNMENT_END
+	layer.add_child(controls)
+
+	var pad := GridContainer.new()
+	pad.columns = 3
+	pad.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	controls.add_child(pad)
+	_add_spacer(pad)
+	_add_touch_button(pad, "▲", "up", 62)
+	_add_spacer(pad)
+	_add_touch_button(pad, "◀", "left", 62)
+	_add_touch_button(pad, "▼", "down", 62)
+	_add_touch_button(pad, "▶", "right", 62)
+
+	var action_column := VBoxContainer.new()
+	controls.add_child(action_column)
+	_add_action_button(action_column, "SHOOT", _shoot, 92)
+	_add_action_button(action_column, "PASS", _pass, 92)
+	_add_touch_button(action_column, "SPRINT", "sprint", 92)
+
+func _add_spacer(parent: Control) -> void:
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(62, 62)
+	parent.add_child(spacer)
+
+func _add_touch_button(parent: Node, caption: String, key: String, width: float) -> void:
+	var button := Button.new()
+	button.text = caption
+	button.custom_minimum_size = Vector2(width, 58)
+	button.button_down.connect(func(): touch_state[key] = true)
+	button.button_up.connect(func(): touch_state[key] = false)
+	parent.add_child(button)
+
+func _add_action_button(parent: Node, caption: String, action: Callable, width: float) -> void:
+	var button := Button.new()
+	button.text = caption
+	button.custom_minimum_size = Vector2(width, 58)
+	button.pressed.connect(action)
+	parent.add_child(button)
+
+func _physics_process(delta: float) -> void:
+	match_time += delta
+	action_cooldown = maxf(0.0, action_cooldown - delta)
+	_update_user_input()
+	_update_ai(delta)
+	_check_goal()
+	if int(match_time) % 30 == 0 and int(match_time * 10.0) % 10 == 0:
+		status_label.text = "EXHIBITION  •  %02d:%02d" % [int(match_time) / 60, int(match_time) % 60]
+
+func _process(delta: float) -> void:
+	if is_instance_valid(controlled_player) and is_instance_valid(camera):
+		var target := controlled_player.global_position + Vector3(0, 10.5, 13.0)
+		camera.global_position = camera.global_position.lerp(target, 1.0 - exp(-3.5 * delta))
+		camera.look_at(controlled_player.global_position + Vector3(0, 0.5, -1.5), Vector3.UP)
+
+func _update_user_input() -> void:
+	var x := 0.0
+	var y := 0.0
+	if Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT) or touch_state.left: x -= 1.0
+	if Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT) or touch_state.right: x += 1.0
+	if Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP) or touch_state.up: y -= 1.0
+	if Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN) or touch_state.down: y += 1.0
+	controlled_player.move_input = Vector2(x, y).normalized()
+	controlled_player.is_sprinting = Input.is_key_pressed(KEY_SHIFT) or touch_state.sprint
+	if Input.is_key_just_pressed(KEY_J): _pass()
+	if Input.is_key_just_pressed(KEY_K): _shoot()
+
+func _update_ai(delta: float) -> void:
+	for p in players:
+		if p == controlled_player:
+			continue
+		var to_ball := ball.global_position - p.global_position
+		var is_nearest := true
+		for other in players:
+			if other.team_id != p.team_id and other.global_position.distance_squared_to(ball.global_position) < p.global_position.distance_squared_to(ball.global_position):
+				is_nearest = false
+				break
+		var target := Vector3.ZERO
+		if is_nearest and p.team_id != 0:
+			target = ball.global_position
+		elif p.team_id == 0 and p.global_position.distance_to(ball.global_position) < 8.0:
+			target = ball.global_position
+		else:
+			var home := _formation_position(players.find(p) / 2, p.team_id)
+			target = home
+		var direction := target - p.global_position
+		direction.y = 0
+		p.move_input = Vector2(direction.x, direction.z).normalized() if direction.length() > 1.0 else Vector2.ZERO
+		p.is_sprinting = is_nearest and direction.length() > 4.0
+		if p.team_id == 1 and p.global_position.distance_to(ball.global_position) < 1.15 and action_cooldown <= 0.0:
+			_ball_kick(p, Vector3(0, 0, 1), 8.0, 1.1)
+			action_cooldown = 0.9
+
+func _nearest_home_player() -> FootballPlayer:
+	var nearest: FootballPlayer = controlled_player
+	var best := INF
+	for p in players:
+		if p.team_id == 0:
+			var d := p.global_position.distance_squared_to(ball.global_position)
+			if d < best:
+				best = d
+				nearest = p
+	return nearest
+
+func _pass() -> void:
+	if action_cooldown > 0.0: return
+	var receiver: FootballPlayer
+	var best := INF
+	for p in players:
+		if p.team_id == 0 and p != controlled_player:
+			var d := p.global_position.distance_squared_to(controlled_player.global_position)
+			if d < best and controlled_player.global_position.direction_to(p.global_position).dot(-controlled_player.visual_root.global_transform.basis.z) > -0.1:
+				best = d
+				receiver = p
+	if receiver:
+		_ball_kick(controlled_player, controlled_player.global_position.direction_to(receiver.global_position), 7.0, 0.35)
+	else:
+		_ball_kick(controlled_player, -controlled_player.visual_root.global_transform.basis.z, 6.0, 0.25)
+	action_cooldown = 0.35
+
+func _shoot() -> void:
+	if action_cooldown > 0.0: return
+	var goal_direction := Vector3(0, 0, -1)
+	_ball_kick(controlled_player, goal_direction, 13.5, 1.0)
+	action_cooldown = 0.45
+
+func _ball_kick(kicker: FootballPlayer, direction: Vector3, power: float, lift: float) -> void:
+	if kicker.global_position.distance_to(ball.global_position) > 2.0:
+		return
+	ball.global_position = kicker.global_position + direction.normalized() * 0.82 + Vector3.UP * 0.18
+	ball.linear_velocity = Vector3.ZERO
+	ball.kick(direction, power, lift)
+
+func _check_goal() -> void:
+	if ball.global_position.z < -15.2 and absf(ball.global_position.x) < 3.0:
+		score_home += 1
+		_reset_after_goal()
+	elif ball.global_position.z > 15.2 and absf(ball.global_position.x) < 3.0:
+		score_away += 1
+		_reset_after_goal()
+
+func _reset_after_goal() -> void:
+	_update_score()
+	ball.reset_ball(Vector3(0, 0.24, 0))
+	for p in players:
+		p.position = _formation_position(players.find(p) / 2, p.team_id)
+
+func _update_score() -> void:
+	if is_instance_valid(score_label):
+		score_label.text = "BLUE  %d  -  %d  RED" % [score_home, score_away]
