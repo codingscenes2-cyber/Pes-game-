@@ -4,7 +4,7 @@ A Godot 4.x 3D football project targeting Android ARM64, with a focus on respons
 
 ## Current status
 
-**M1 greybox foundation and an early M2 gameplay pass are committed.** The prototype now includes a procedural pitch, 22 capsule players, a rigid-body ball, basic team movement, follow camera, score HUD, touch/keyboard controls, nearest-player switching, ground/through passing, shot variants simple close-control dribble nudges, soft ball possession/first-touch assistance, hold-to-shield carry, and short pass/shot input buffering. The team orientation has also been corrected so the home team attacks the negative-Z goal and the away team attacks positive-Z; each side now has a basic goalkeeper role with goal-line tracking and clearances. This is still an early greybox prototype, not a finished football game. GitHub Actions now successfully imports the project with Godot 4.3 and boots the main scene headlessly; real-device gameplay, touch testing and Android export remain unverified.
+**M1 greybox foundation and an early M2 gameplay pass are committed.** The prototype now includes a procedural pitch, 22 capsule players, a rigid-body ball, basic team movement, follow camera, score HUD, touch/keyboard controls, nearest-player switching, ground/through passing, shot variants, simple close-control dribble nudges, soft ball possession/first-touch assistance, hold-to-shield carry, short pass/shot input buffering, and an initial M3 tactical layer with possession-aware team shape, forward support runs and one primary presser per defending side. The team orientation has also been corrected so the home team attacks the negative-Z goal and the away team attacks positive-Z; each side now has a basic goalkeeper role with goal-line tracking and clearances. This is still an early greybox prototype, not a finished football game. GitHub Actions now successfully imports the project with Godot 4.3 and boots the main scene headlessly; real-device gameplay and touch testing remain unverified. An Android ARM64 export preset and GitHub Actions APK build have now been added; the first APK still needs a successful CI export before it can be downloaded.
 
 ## Open the project
 
@@ -18,7 +18,7 @@ A Godot 4.x 3D football project targeting Android ARM64, with a focus on respons
 - [x] M1 — project skeleton and first playable greybox foundation (source only; runtime verification pending)
 - [ ] M1.1 — headless import/boot CI passes; real-device testing, movement/ball tuning and Android export remain
 - [ ] M2 — early actions pass committed; possession, tackling, first touch and tuning remain
-- [ ] M3 — team shape, off-ball runs, defensive pressure, goalkeeper and restart logic
+- [ ] M3 — initial possession-aware shape, forward support runs and single-player pressing are implemented; keeper dives/catches/parries, marking/interceptions, robust transitions and restart logic remain
 - [ ] M4 — animation system, IK/procedural foot placement, player variety and impact reactions
 - [ ] M5 — match rules, clock, score, fouls, set pieces, substitutions and match flow
 - [ ] M6 — professional menus, team selection, tactics, training and career-mode foundation
@@ -40,4 +40,4 @@ A Godot 4.x 3D football project targeting Android ARM64, with a focus on respons
 
 ## Build note
 
-Android export requires Godot's Android export templates, Android SDK/JDK configuration and a signing key. Keep release signing credentials private and out of Git.
+Android ARM64 test APKs are built by `.github/workflows/android-arm64.yml` and uploaded as a GitHub Actions artifact (14-day retention). This workflow exports a debug-signed installable test APK, not a store-ready production release. A permanent private release keystore is intentionally not committed; production signing must be configured securely before distribution.
