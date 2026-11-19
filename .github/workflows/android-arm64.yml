@@ -47,9 +47,6 @@ jobs:
         run: godot --headless --editor --path . --quit
 
       - name: Export installable ARM64 test APK
-        env:
-          ANDROID_HOME: ${{ env.ANDROID_HOME }}
-          ANDROID_SDK_ROOT: ${{ env.ANDROID_HOME }}
         run: |
           mkdir -p build/android
           godot --headless --path . --export-debug "Android ARM64" build/android/PES-M1-M3-ARM64-TEST.apk
