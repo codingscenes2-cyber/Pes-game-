@@ -33,7 +33,9 @@ Soft possession is now acquired automatically when a nearby player meets a low-s
 - [ ] Press switch-player while teammates are at different distances; verify control transfers to the home player nearest the ball.
 - [ ] Test a tackle near an opponent; verify it has a cooldown and only deflects the ball when the challenge is close enough.
 - [ ] Confirm the ball collides with players and the pitch, rolls to a stop and responds to kicks.
-- [ ] Score in either goal and confirm the score increments and kickoff positions reset.
+- [ ] Confirm home players attack the negative-Z goal and away players attack the positive-Z goal; verify each goalkeeper stays near the correct goal.
+- [ ] Test a slow ball entering each penalty area; verify the corresponding goalkeeper tracks it and attempts a clearance at close range.
+- [ ] Score in either goal and confirm the correct score increments and kickoff positions reset.
 - [ ] Test a narrow/tall Android viewport; verify the controls remain reachable and do not cover the score.
 - [ ] Profile on a physical Android device and check frame pacing, heat and memory use.
 
@@ -48,5 +50,5 @@ Soft possession is now acquired automatically when a nearby player meets a low-s
 - Possession and first touch are early soft-force assistance; no authored trap animation, true foot contact, shielding collision volume or ownership UI yet.
 - Tackling is a proximity-based knockback/deflection prototype, not a timed tackle animation or foul-aware challenge system.
 - Shooting currently targets the negative-Z goal; match-side switching and full match rules are not implemented.
-- No goalkeeper-specific behaviour, fouls, offside, set pieces, match clock/halves, audio or save system yet.
+- Goalkeepers have only basic lateral/penalty-area tracking and close-range clearances; dives, catches, parries and realistic distribution remain unimplemented. Fouls, offside, set pieces, match clock/halves, audio and save system are also missing.
 - CI has passed a Godot 4.3 headless import and scene boot, but the project has not yet had interactive editor/device QA or an Android export. Complete the remaining checklist before calling M1/M2 verified.
