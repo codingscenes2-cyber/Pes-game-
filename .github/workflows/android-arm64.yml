@@ -68,7 +68,13 @@ jobs:
           cp -a /tmp/godot-templates/templates/. "$HOME/.local/share/godot/export_templates/4.3.stable/"
 
       - name: Import and validate project
-        run: godot --headless --editor --path . --quit
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --editor --path . --quit 2>&1 | tee /tmp/godot-import.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:" /tmp/godot-import.log; then exit 1; fi
+          godot --headless --path . --quit-after 5 2>&1 | tee /tmp/godot-boot.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:" /tmp/godot-boot.log; then exit 1; fi
 
       - name: Export installable ARM64 test APK
         run: |
