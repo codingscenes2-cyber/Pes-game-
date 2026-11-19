@@ -15,7 +15,7 @@
 | Tackle / challenge | P | TACKLE button |
 | Shield / protect ball | Hold E | Hold SHIELD button |
 
-Soft possession is now acquired automatically when a nearby player meets a low-speed ball. The ball is guided toward a moving carry point using a capped spring-like force; it is not parented to the player. The controlled player can hold shield to carry the ball slightly to the side. Automatic close-control nudges add a small touch while moving. Kicks still require the player to be within 2 metres of the ball.
+Soft possession is now acquired automatically when a nearby player meets a low-speed ball. The ball is guided toward a moving carry point using a capped spring-like force; it is not parented to the player. The controlled player can hold shield to carry the ball slightly to the side. Automatic close-control nudges add a small touch while moving. Pass and shot inputs are buffered for up to 0.38 seconds while the controlled player closes the final distance to the ball; the kick itself still requires the player to be within 2 metres.
 
 ## M1 / M2 manual test checklist
 
@@ -23,6 +23,7 @@ Soft possession is now acquired automatically when a nearby player meets a low-s
 - [ ] Run the main scene and confirm the pitch, both goals, 22 players, ball, camera and HUD appear.
 - [ ] Walk, change direction and sprint; verify the player does not slide excessively or fall through the pitch.
 - [ ] Move close to the ball and test ground pass and normal shot from keyboard and touch controls.
+- [ ] Press pass or shoot just outside kick range, move into range within the buffer window, and confirm the queued action fires once; confirm it expires if the player does not reach the ball in time.
 - [ ] Test through pass with a teammate ahead; confirm the ball travels into space rather than directly to the receiver's feet.
 - [ ] Test finesse and chip shots from keyboard and touch controls; compare their trajectories with the normal shot.
 - [ ] Roll a slow ball toward a player; verify first-touch assistance settles it into soft possession without snapping it onto the player.
