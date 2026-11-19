@@ -10,7 +10,7 @@ A Godot 4.x 3D football project targeting Android ARM64, with a focus on respons
 
 1. Install Godot 4.x and import the folder containing `project.godot`.
 2. Run the main scene.
-3. Desktop controls: WASD / arrows to move, Shift to sprint, J to pass, U to through pass, K to shoot, I to finesse, O to chip, Q to switch player.
+3. Desktop controls: WASD / arrows to move, Shift to sprint, J to pass, U to through pass, K to shoot, I to finesse, O to chip, Q to switch player, P to tackle.
 4. On-screen controls are provided for touch testing.
 
 ## Roadmap
