@@ -10,7 +10,11 @@
 
 ## M2 — ball mastery and actions
 
-Implement first touch/trapping, dribble touches, pass selection and ground/lofted/through balls, shot types, headers/volleys, tackling, shielding, ball ownership and contextual assistance. Add input buffering and action cancellation windows. Acceptance requires repeatable test scenarios and tuned response curves.
+**Implemented in source (early pass):** nearest-to-ball player switching, ground pass, heuristic through pass, normal/finesse/chip shot variants, and proximity-based close-control nudges. Keyboard and touch HUD inputs are wired.
+
+**Still missing:** reliable first-touch trapping, persistent possession/ownership, shielding, tackling, interceptions, headers/volleys, pass/shot input buffering, animation-linked contact windows, pass target UI, and tuned shot curves.
+
+**Acceptance:** repeatable tests demonstrate controllable first touch, predictable dribble touches at multiple speeds, accurate ground/lofted/through passing, distinct shot trajectories, tackles and possession transitions without ball teleporting or excessive impulse. Run on device before marking complete.
 
 ## M3 — team AI and goalkeeper
 
