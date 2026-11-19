@@ -160,7 +160,7 @@ func _build_hud() -> void:
 	controls.anchor_right = 1.0
 	controls.anchor_bottom = 1.0
 	controls.offset_left = 18
-	controls.offset_top = -112
+	controls.offset_top = -300
 	controls.offset_right = -18
 	controls.offset_bottom = -18
 	controls.alignment = BoxContainer.ALIGNMENT_END
@@ -180,6 +180,8 @@ func _build_hud() -> void:
 	var action_column := VBoxContainer.new()
 	controls.add_child(action_column)
 	_add_action_button(action_column, "SHOOT", _shoot, 92)
+	_add_action_button(action_column, "FINESSE", _shoot_finesse, 92)
+	_add_action_button(action_column, "CHIP", _shoot_chip, 92)
 	_add_action_button(action_column, "PASS", _pass, 92)
 	_add_action_button(action_column, "THROUGH", _through_pass, 92)
 	_add_action_button(action_column, "SWITCH", _switch_player, 92)
@@ -201,7 +203,7 @@ func _add_touch_button(parent: Node, caption: String, key: String, width: float)
 func _add_action_button(parent: Node, caption: String, action: Callable, width: float) -> void:
 	var button := Button.new()
 	button.text = caption
-	button.custom_minimum_size = Vector2(width, 58)
+	button.custom_minimum_size = Vector2(width, 40)
 	button.pressed.connect(action)
 	parent.add_child(button)
 
