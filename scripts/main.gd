@@ -21,6 +21,8 @@ var tackle_cooldown := 0.0
 var possession_player: FootballPlayer
 var possession_lock_timer := 0.0
 var shielding := false
+var buffered_ball_action: StringName = &""
+var action_buffer_timer := 0.0
 
 const HOME_COLOR := Color(0.08, 0.32, 0.94)
 const AWAY_COLOR := Color(0.88, 0.16, 0.12)
@@ -184,11 +186,11 @@ func _build_hud() -> void:
 	var action_column := VBoxContainer.new()
 	action_column.add_theme_constant_override("separation", 0)
 	controls.add_child(action_column)
-	_add_action_button(action_column, "SHOOT", _shoot, 92)
-	_add_action_button(action_column, "FINESSE", _shoot_finesse, 92)
-	_add_action_button(action_column, "CHIP", _shoot_chip, 92)
-	_add_action_button(action_column, "PASS", _pass, 92)
-	_add_action_button(action_column, "THROUGH", _through_pass, 92)
+	_add_action_button(action_column, "SHOOT", _request_ball_action.bind(&"shoot"), 92)
+	_add_action_button(action_column, "FINESSE", _request_ball_action.bind(&"finesse"), 92)
+	_add_action_button(action_column, "CHIP", _request_ball_action.bind(&"chip"), 92)
+	_add_action_button(action_column, "PASS", _request_ball_action.bind(&"pass"), 92)
+	_add_action_button(action_column, "THROUGH", _request_ball_action.bind(&"through"), 92)
 	_add_action_button(action_column, "SWITCH", _switch_player, 92)
 	_add_action_button(action_column, "TACKLE", _tackle, 92)
 	_add_touch_button(action_column, "SHIELD", "shield", 92, 40)
@@ -221,6 +223,7 @@ func _physics_process(delta: float) -> void:
 	tackle_cooldown = maxf(0.0, tackle_cooldown - delta)
 	_update_user_input()
 	_update_possession(delta)
+	_update_action_buffer(delta)
 	_update_dribble_control()
 	_update_ai(delta)
 	_check_goal()
@@ -243,13 +246,13 @@ func _update_user_input() -> void:
 	controlled_player.move_input = Vector2(x, y).normalized()
 	controlled_player.is_sprinting = Input.is_key_pressed(KEY_SHIFT) or touch_state.sprint
 	shielding = Input.is_key_pressed(KEY_E) or touch_state.shield
-	if Input.is_key_just_pressed(KEY_J): _pass()
-	if Input.is_key_just_pressed(KEY_K): _shoot()
-	if Input.is_key_just_pressed(KEY_U): _through_pass()
+	if Input.is_key_just_pressed(KEY_J): _request_ball_action(&"pass")
+	if Input.is_key_just_pressed(KEY_K): _request_ball_action(&"shoot")
+	if Input.is_key_just_pressed(KEY_U): _request_ball_action(&"through")
 	if Input.is_key_just_pressed(KEY_Q): _switch_player()
 	if Input.is_key_just_pressed(KEY_P): _tackle()
-	if Input.is_key_just_pressed(KEY_I): _shoot_finesse()
-	if Input.is_key_just_pressed(KEY_O): _shoot_chip()
+	if Input.is_key_just_pressed(KEY_I): _request_ball_action(&"finesse")
+	if Input.is_key_just_pressed(KEY_O): _request_ball_action(&"chip")
 
 func _update_ai(delta: float) -> void:
 	for p in players:
@@ -287,6 +290,35 @@ func _nearest_home_player() -> FootballPlayer:
 				best = d
 				nearest = p
 	return nearest
+
+func _request_ball_action(action: StringName) -> void:
+	if action_cooldown > 0.0:
+		return
+	if controlled_player.global_position.distance_to(ball.global_position) > 2.0:
+		buffered_ball_action = action
+		action_buffer_timer = 0.38
+		return
+	_execute_ball_action(action)
+
+func _update_action_buffer(delta: float) -> void:
+	if buffered_ball_action == &"":
+		return
+	action_buffer_timer = maxf(0.0, action_buffer_timer - delta)
+	if action_buffer_timer <= 0.0:
+		buffered_ball_action = &""
+		return
+	if controlled_player.global_position.distance_to(ball.global_position) <= 2.0 and action_cooldown <= 0.0:
+		var action := buffered_ball_action
+		buffered_ball_action = &""
+		_execute_ball_action(action)
+
+func _execute_ball_action(action: StringName) -> void:
+	match action:
+		&"pass": _pass()
+		&"through": _through_pass()
+		&"shoot": _shoot()
+		&"finesse": _shoot_finesse()
+		&"chip": _shoot_chip()
 
 func _pass() -> void:
 	if action_cooldown > 0.0: return
