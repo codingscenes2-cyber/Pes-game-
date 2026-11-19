@@ -23,6 +23,7 @@ var possession_lock_timer := 0.0
 var shielding := false
 var buffered_ball_action: StringName = &""
 var action_buffer_timer := 0.0
+var _previous_key_states: Dictionary = {}
 
 const HOME_COLOR := Color(0.08, 0.32, 0.94)
 const AWAY_COLOR := Color(0.88, 0.16, 0.12)
@@ -238,6 +239,12 @@ func _process(delta: float) -> void:
 		camera.global_position = camera.global_position.lerp(target, 1.0 - exp(-3.5 * delta))
 		camera.look_at(controlled_player.global_position + Vector3(0, 0.5, -1.5), Vector3.UP)
 
+func _key_just_pressed(keycode: Key) -> bool:
+	var pressed_now := Input.is_key_pressed(keycode)
+	var was_pressed := bool(_previous_key_states.get(keycode, false))
+	_previous_key_states[keycode] = pressed_now
+	return pressed_now and not was_pressed
+
 func _update_user_input() -> void:
 	var x := 0.0
 	var y := 0.0
@@ -248,7 +255,7 @@ func _update_user_input() -> void:
 	controlled_player.move_input = Vector2(x, y).normalized()
 	controlled_player.is_sprinting = Input.is_key_pressed(KEY_SHIFT) or touch_state.sprint
 	shielding = Input.is_key_pressed(KEY_E) or touch_state.shield
-	if Input.is_key_just_pressed(KEY_J): _request_ball_action(&"pass")
+	if _key_just_pressed(KEY_J): _request_ball_action(&"pass")
 	if Input.is_key_just_pressed(KEY_K): _request_ball_action(&"shoot")
 	if Input.is_key_just_pressed(KEY_U): _request_ball_action(&"through")
 	if Input.is_key_just_pressed(KEY_Q): _switch_player()
