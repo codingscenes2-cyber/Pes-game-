@@ -13,8 +13,9 @@
 | Chip shot | O | CHIP button |
 | Switch controlled player | Q | SWITCH button |
 | Tackle / challenge | P | TACKLE button |
+| Shield / protect ball | Hold E | Hold SHIELD button |
 
-Close-control dribbling is assisted automatically when the controlled player moves with the ball close to the forward foot area. It applies a small physics impulse at a short interval rather than attaching or teleporting the ball. Most kicks still require the player to be within 2 metres of the ball.
+Soft possession is now acquired automatically when a nearby player meets a low-speed ball. The ball is guided toward a moving carry point using a capped spring-like force; it is not parented to the player. The controlled player can hold shield to carry the ball slightly to the side. Automatic close-control nudges add a small touch while moving. Kicks still require the player to be within 2 metres of the ball.
 
 ## M1 / M2 manual test checklist
 
@@ -24,6 +25,9 @@ Close-control dribbling is assisted automatically when the controlled player mov
 - [ ] Move close to the ball and test ground pass and normal shot from keyboard and touch controls.
 - [ ] Test through pass with a teammate ahead; confirm the ball travels into space rather than directly to the receiver's feet.
 - [ ] Test finesse and chip shots from keyboard and touch controls; compare their trajectories with the normal shot.
+- [ ] Roll a slow ball toward a player; verify first-touch assistance settles it into soft possession without snapping it onto the player.
+- [ ] Move in several directions while possessing the ball; verify the carry point follows smoothly and the ball can still be challenged.
+- [ ] Hold shield while possessing the ball; verify the ball moves to the side and returns to normal carry when released.
 - [ ] Move while the ball is close to the controlled player's feet; verify close-control nudges are small and do not launch the ball away.
 - [ ] Press switch-player while teammates are at different distances; verify control transfers to the home player nearest the ball.
 - [ ] Test a tackle near an opponent; verify it has a cooldown and only deflects the ball when the challenge is close enough.
@@ -40,7 +44,7 @@ Close-control dribbling is assisted automatically when the controlled player mov
 - Player switching selects the home player nearest to the ball; no manual cycling or role-aware selection yet.
 - Through-pass selection is heuristic and has no receiver targeting indicator.
 - Finesse and chip shots are early parameter variations, not tuned PES-grade ball curves.
-- Close-control touches are a simple proximity impulse; there is no persistent possession state, trapping animation or shielding yet.
+- Possession and first touch are early soft-force assistance; no authored trap animation, true foot contact, shielding collision volume or ownership UI yet.
 - Tackling is a proximity-based knockback/deflection prototype, not a timed tackle animation or foul-aware challenge system.
 - Shooting currently targets the negative-Z goal; match-side switching and full match rules are not implemented.
 - No goalkeeper-specific behaviour, fouls, offside, set pieces, match clock/halves, audio or save system yet.
