@@ -19,8 +19,8 @@ Soft possession is now acquired automatically when a nearby player meets a low-s
 
 ## M1 / M2 manual test checklist
 
-- [ ] Import the project in Godot 4.x without parse/import errors.
-- [ ] Run the main scene and confirm the pitch, both goals, 22 players, ball, camera and HUD appear.
+- [x] GitHub Actions: import the project with Godot 4.3 and boot the main scene headlessly (passed on the latest commit).
+- [ ] Open the project in the Godot editor and inspect the live scene; confirm the pitch, both goals, 22 players, ball, camera and HUD appear.
 - [ ] Walk, change direction and sprint; verify the player does not slide excessively or fall through the pitch.
 - [ ] Move close to the ball and test ground pass and normal shot from keyboard and touch controls.
 - [ ] Press pass or shoot just outside kick range, move into range within the buffer window, and confirm the queued action fires once; confirm it expires if the player does not reach the ball in time.
@@ -49,4 +49,4 @@ Soft possession is now acquired automatically when a nearby player meets a low-s
 - Tackling is a proximity-based knockback/deflection prototype, not a timed tackle animation or foul-aware challenge system.
 - Shooting currently targets the negative-Z goal; match-side switching and full match rules are not implemented.
 - No goalkeeper-specific behaviour, fouls, offside, set pieces, match clock/halves, audio or save system yet.
-- This repository has not been opened in the Godot editor or exported to Android in this environment. Complete the checklist before calling M1/M2 verified.
+- CI has passed a Godot 4.3 headless import and scene boot, but the project has not yet had interactive editor/device QA or an Android export. Complete the remaining checklist before calling M1/M2 verified.
