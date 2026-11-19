@@ -10,9 +10,9 @@
 
 ## M2 — ball mastery and actions
 
-**Implemented in source (early pass):** nearest-to-ball player switching, ground pass, heuristic through pass, normal/finesse/chip shot variants, proximity-based close-control nudges, and a cooldown-based proximity tackle/ball deflection. Keyboard and touch HUD inputs are wired.
+**Implemented in source (early pass):** nearest-to-ball player switching, ground pass, heuristic through pass, normal/finesse/chip shot variants, proximity-based close-control nudges, a cooldown-based proximity tackle/ball deflection, low-speed soft possession acquisition, spring-force ball carrying, and hold-to-shield side carry. Keyboard and touch HUD inputs are wired.
 
-**Still missing:** reliable first-touch trapping, persistent possession/ownership, shielding, tackling, interceptions, headers/volleys, pass/shot input buffering, animation-linked contact windows, pass target UI, and tuned shot curves.
+**Still missing:** robust contested possession/ownership transitions, directional first-touch control, shielding collision/strength mechanics, timed tackle outcomes, interceptions, headers/volleys, pass/shot input buffering, animation-linked contact windows, pass target UI, and tuned shot curves.
 
 **Acceptance:** repeatable tests demonstrate controllable first touch, predictable dribble touches at multiple speeds, accurate ground/lofted/through passing, distinct shot trajectories, tackles and possession transitions without ball teleporting or excessive impulse. Run on device before marking complete.
 
