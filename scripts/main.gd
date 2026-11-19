@@ -256,12 +256,12 @@ func _update_user_input() -> void:
 	controlled_player.is_sprinting = Input.is_key_pressed(KEY_SHIFT) or touch_state.sprint
 	shielding = Input.is_key_pressed(KEY_E) or touch_state.shield
 	if _key_just_pressed(KEY_J): _request_ball_action(&"pass")
-	if Input.is_key_just_pressed(KEY_K): _request_ball_action(&"shoot")
-	if Input.is_key_just_pressed(KEY_U): _request_ball_action(&"through")
-	if Input.is_key_just_pressed(KEY_Q): _switch_player()
-	if Input.is_key_just_pressed(KEY_P): _tackle()
-	if Input.is_key_just_pressed(KEY_I): _request_ball_action(&"finesse")
-	if Input.is_key_just_pressed(KEY_O): _request_ball_action(&"chip")
+	if _key_just_pressed(KEY_K): _request_ball_action(&"shoot")
+	if _key_just_pressed(KEY_U): _request_ball_action(&"through")
+	if _key_just_pressed(KEY_Q): _switch_player()
+	if _key_just_pressed(KEY_P): _tackle()
+	if _key_just_pressed(KEY_I): _request_ball_action(&"finesse")
+	if _key_just_pressed(KEY_O): _request_ball_action(&"chip")
 
 func _update_ai(delta: float) -> void:
 	# Determine which side currently has the initiative. Prefer explicit soft
