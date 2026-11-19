@@ -179,6 +179,7 @@ func _build_hud() -> void:
 	_add_touch_button(pad, "▶", "right", 62)
 
 	var action_column := VBoxContainer.new()
+	action_column.add_theme_constant_override("separation", 0)
 	controls.add_child(action_column)
 	_add_action_button(action_column, "SHOOT", _shoot, 92)
 	_add_action_button(action_column, "FINESSE", _shoot_finesse, 92)
