@@ -4,13 +4,13 @@ A Godot 4.x 3D football project targeting Android ARM64, with a focus on respons
 
 ## Current status
 
-**M1 greybox foundation and an early M2 gameplay pass are committed.** The prototype now includes a procedural pitch, 22 capsule players, a rigid-body ball, basic team movement, follow camera, score HUD, touch/keyboard controls, nearest-player switching, ground/through passing, shot variants and simple close-control dribble nudges. This is still an early greybox prototype, not a finished football game. It has not yet been built or runtime-tested in Godot in this environment.
+**M1 greybox foundation and an early M2 gameplay pass are committed.** The prototype now includes a procedural pitch, 22 capsule players, a rigid-body ball, basic team movement, follow camera, score HUD, touch/keyboard controls, nearest-player switching, ground/through passing, shot variants simple close-control dribble nudges, soft ball possession/first-touch assistance, and hold-to-shield carry. This is still an early greybox prototype, not a finished football game. It has not yet been built or runtime-tested in Godot in this environment.
 
 ## Open the project
 
 1. Install Godot 4.x and import the folder containing `project.godot`.
 2. Run the main scene.
-3. Desktop controls: WASD / arrows to move, Shift to sprint, J to pass, U to through pass, K to shoot, I to finesse, O to chip, Q to switch player, P to tackle.
+3. Desktop controls: WASD / arrows to move, Shift to sprint, J to pass, U to through pass, K to shoot, I to finesse, O to chip, Q to switch player, P to tackle, hold E to shield.
 4. On-screen controls are provided for touch testing.
 
 ## Roadmap
