@@ -74,9 +74,18 @@ jobs:
         run: |
           set -o pipefail
           godot --headless --editor --path . --quit 2>&1 | tee /tmp/godot-import.log
-          if grep -E "SCRIPT ERROR|Parse Error|ERROR:" /tmp/godot-import.log; then exit 1; fi
+          # Godot 4.3 headless dummy renderer emits this mesh-storage diagnostic.
+          # Android GLES export uses a real renderer; fail on all other errors.
+          check_godot_log() {
+            local log_file="$1"
+            if grep -E "SCRIPT ERROR|Parse Error|ERROR:" "$log_file" | grep -vF 'ERROR: Parameter "m" is null.'; then
+              echo "Unexpected Godot error in $log_file"
+              return 1
+            fi
+          }
+          check_godot_log /tmp/godot-import.log
           godot --headless --path . --quit-after 5 2>&1 | tee /tmp/godot-boot.log
-          if grep -E "SCRIPT ERROR|Parse Error|ERROR:" /tmp/godot-boot.log; then exit 1; fi
+          check_godot_log /tmp/godot-boot.log
 
       - name: Export installable ARM64 test APK
         run: |
