@@ -88,9 +88,11 @@ jobs:
           check_godot_log /tmp/godot-boot.log
 
       - name: Export installable ARM64 test APK
+        shell: bash
         run: |
+          set -o pipefail
           mkdir -p build/android
-          godot --headless --path . --export-debug "Android ARM64" build/android/PES-M1-M3-ARM64-TEST.apk
+          godot --headless --verbose --path . --export-debug "Android ARM64" build/android/PES-M1-M3-ARM64-TEST.apk 2>&1 | tee /tmp/android-export.log
           test -s build/android/PES-M1-M3-ARM64-TEST.apk
 
       - name: Upload APK
